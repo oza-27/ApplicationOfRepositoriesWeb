@@ -1,0 +1,119 @@
+﻿@model ApplicationOfRepositorie.Models.ViewModels.ProductVM
+@{
+    ViewData["Title"] = "Upsert";
+}
+
+<div class="container">
+    <div>
+        <form method="post" asp-action="Upsert" style="background-image:linear-gradient(lightblue,lightgreen)" enctype="multipart/form-data">
+            <div class="border p-3 mt-4 row">
+                <div class="row pb-2">
+                    <h2 class="text-primary text-dark"> @(Model.product.Id!=0?"Update":"Create") Product </h2>
+                    <hr />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="product.Title"> Name </label>
+                    <input asp-for="product.Title" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="product.Description"> Description </label>
+                    <textarea asp-for="product.Description" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.ISBN"> ISBN Number </label>
+                    <input asp-for="product.ISBN" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.Author"> Author Name </label>
+                    <input asp-for="product.Author" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.listPrice"> List of Price </label>
+                    <input asp-for="product.listPrice" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.Price"> Price of one book </label>
+                    <input asp-for="product.Price" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.Price50"> Price of 50 books </label>
+                    <input asp-for="product.Price50" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.Price100"> Price of 100 books </label>
+                    <input asp-for="product.Price100" class="form-control" />
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.CategoryId"> Category List </label>
+                    <select asp-for="product.CategoryId" asp-items="@Model.categoryList" class="form-select text-center">
+                        <option disabled selected>----------------Select Category---------------</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 col-6">
+                    <label asp-for="product.CoverTypeId"> CoverType List </label>
+                    <select asp-for="product.CoverTypeId" asp-items="@Model.covertypeList" class="form-select text-center">
+                        <option disabled selected>----------------Select CoverType---------------</option>
+                    </select>
+                </div>
+ 
+                <div class="mb-3">
+                    <label asp-for="product.ImageUrl"> Import image File </label>
+                    <input type="file" id="imageUpload" name="file" class="form-control" />
+                </div>
+                
+                <div class="col-12">
+                    @if (Model.product.Id != 0)
+                    {
+                        <button type="submit" class="btn btn-outline-dark" style="width:150px"> Update </button>
+                    }
+                    else
+                    {
+                        <button type="submit" id="done" onclick="return ValidateInput()" class="btn btn-outline-dark" style="width:150px"> Create </button>
+
+                    }
+                    <a class="btn btn-outline-info text-dark" asp-controller="Product" asp-action="Index" style="width:150px"> 
+                        Back to List
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+
+    <script>
+        function ValidateInput(){
+            if (document.getElementById("imageUpload").value==""){
+                Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Please upload an image!',
+                });
+                return false;
+            }
+            if (document.getElementById("done") != null){
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Your product has been Created you can go back to index page.',
+                    showConfirmButton: true,
+                    timer: 1500
+                })
+            }
+            return true;
+        }
+    </script>
+}
