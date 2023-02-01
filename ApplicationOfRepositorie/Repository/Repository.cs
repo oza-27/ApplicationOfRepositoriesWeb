@@ -12,6 +12,7 @@ namespace ApplicationOfRepositorie.Repository
 		public Repository(ApplicationDbContext db)
 		{
 			_db= db;
+			_db.demo_products.Include(i => i.Category).Include(u => u.CoverType);
 			this.dbSet = _db.Set<T>();
 		}
 		public void Add(T entity)
@@ -19,17 +20,31 @@ namespace ApplicationOfRepositorie.Repository
 			_db.Add(entity);
 		}
 
-		public IEnumerable<T> GetAll()
+		public IEnumerable<T> GetAll(string? includeProperties = null)
 		{
 			IQueryable<T> query = dbSet;
+			if(includeProperties != null)
+			{
+				foreach(var property in includeProperties.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries))
+				{
+					query = query.Include(property);
+				}
+			}
 			return query.ToList();
 		}
 
-		public T GetFirstofDefault(System.Linq.Expressions.Expression<Func<T, bool>> filter)
+		public T GetFirstofDefault(System.Linq.Expressions.Expression<Func<T, bool>> filter, string? includeProperties = null)
 		{
 			IQueryable<T> query = dbSet;
 			query = query.Where(filter);
-			return query.FirstOrDefault();
+            if (includeProperties != null)
+            {
+                foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+                }
+            }
+            return query.FirstOrDefault();
 		}
 
 		public void Remove(T entity)

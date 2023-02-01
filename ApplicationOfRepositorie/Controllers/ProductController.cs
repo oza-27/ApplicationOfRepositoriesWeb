@@ -18,13 +18,12 @@ namespace ApplicationOfRepositorie.Controllers
 
         public IActionResult Index()
         {
-            IEnumerable<Product> productList = _unitOfWork.Product.GetAll();
-            return View(productList);
+            return View();
         }
 
         public IActionResult Upsert(int? id)
         {
-            ProductVM product = new()
+            ProductVM productView = new()
             {
                 product = new(),
                 categoryList = _unitOfWork.Category.GetAll().Select(i=> new SelectListItem
@@ -43,9 +42,14 @@ namespace ApplicationOfRepositorie.Controllers
                 //ViewBag.categoryList = categoryList;
                 //ViewBag.covertypeList = covertypeList;
 
-                return View(product);
+                return View(productView);
             }
-            return View(product);
+            else
+            {
+                productView.product = _unitOfWork.Product.GetFirstofDefault(u=>u.Id==id);
+                return View(productView);
+            }
+            
         }
         //post 
         [HttpPost]
@@ -58,11 +62,20 @@ namespace ApplicationOfRepositorie.Controllers
                 if(file!=null)
                 {
                     string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(wwwPath, @"imgaes\products\");
+                    var uploads = Path.Combine(wwwPath, @"images\products\");
                     var extension = Path.GetExtension(file.FileName);
 
+                    if(obj.product.ImageUrl != null)
+                    {
+                        var oldImage = Path.Combine(wwwPath,obj.product.ImageUrl.TrimStart('\\'));
+                        if(System.IO.File.Exists(oldImage))
+                        {
+                            System.IO.File.Delete(oldImage);
+                        }
+                    }
+
                     using (var fileStreams = new FileStream(Path.Combine(
-                        uploads,
+                        uploads, 
                         fileName+extension),
                         FileMode.Create))
                     {
@@ -70,22 +83,57 @@ namespace ApplicationOfRepositorie.Controllers
                     }
                     obj.product.ImageUrl = @"\images\products\"+fileName+extension;
                 }
-                _unitOfWork.Product.Add(obj.product);
+                if(obj.product.Id == 0)
+                {
+                    _unitOfWork.Product.Add(obj.product);
+                }
+                else
+                {
+                    _unitOfWork.Product.Update(obj.product);
+                }
                 _unitOfWork.Save();
                 return RedirectToAction("Index");
             }
-            return View();
+            return View(obj);
         }
+
+
 
         #region API CALLS
         public IActionResult GetAll()
         {
-            var productList = _unitOfWork.Product.GetAll();
+            var productList = _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
             return Json(new
             {
                 data = productList
             });
         }
+        [HttpDelete] 
+        public IActionResult Delete(int? id) 
+        {
+            var obj = _unitOfWork.Product.GetFirstofDefault(u => u.Id == id);
+            if(obj == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message="Error while Deleting"
+                });
+            }
+            var oldImage = Path.Combine(_webHostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+            if (System.IO.File.Exists(oldImage))
+            {
+                System.IO.File.Delete(oldImage);
+            }
+            _unitOfWork.Product.Remove(obj);
+            _unitOfWork.Save();
+            return Json(new
+            {
+                success = true,
+                message = "Product Deleted Successfully"
+            });
+        }
+        
 
         #endregion
     }

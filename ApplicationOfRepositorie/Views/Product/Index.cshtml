@@ -11,12 +11,13 @@
     </div>
     <br /><br />
 
-    <table class="table table-bordered table-striped text-center" style="width:100%">
+    <table id="data" class="table table-bordered table-striped text-center" style="width:100%;background-image:linear-gradient(grey,lightblue)">
         <thead>
             <tr>
                 <th>Title</th>
+                <th>Description</th>
                 <th>ISBN</th>
-                <th>Price</th>
+                @*<th>Price</th>*@
                 <th>Author</th>
                 <th>Category</th>
                 <th></th>
@@ -25,4 +26,6 @@
     </table>
 </div>
 
-
+@section Scripts{
+    <script src="~/js/product.js"></script>
+}
