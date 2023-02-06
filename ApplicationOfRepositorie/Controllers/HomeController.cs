@@ -27,7 +27,7 @@ namespace ApplicationOfRepositorie.Controllers
 			ShoppingCart shopCart = new()
 			{
 				Count = 1,
-				Product = _unitOfWork.Product.GetFirstofDefault(i => i.Id == id, includeProperties:"Category, CoverType"),
+				Product = _unitOfWork.Product.GetFirstorDefault(i => i.Id == id, includeProperties: "Category,CoverType")
 			};
 			return View(shopCart);
 		}

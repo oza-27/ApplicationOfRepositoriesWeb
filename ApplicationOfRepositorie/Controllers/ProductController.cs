@@ -46,7 +46,7 @@ namespace ApplicationOfRepositorie.Controllers
             }
             else
             {
-                productView.product = _unitOfWork.Product.GetFirstofDefault(u=>u.Id==id);
+                productView.product = _unitOfWork.Product.GetFirstorDefault(u=>u.Id==id);
                 return View(productView);
             }
             
@@ -111,7 +111,7 @@ namespace ApplicationOfRepositorie.Controllers
         [HttpDelete] 
         public IActionResult Delete(int? id) 
         {
-            var obj = _unitOfWork.Product.GetFirstofDefault(u => u.Id == id);
+            var obj = _unitOfWork.Product.GetFirstorDefault(u => u.Id == id);
             if(obj == null)
             {
                 return Json(new

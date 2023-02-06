@@ -5,7 +5,7 @@ namespace ApplicationOfRepositorie.Repository.IRepository
 	public interface IRepository<T> where T: class
 	{
 		// T- category namw
-		T GetFirstofDefault(Expression<Func<T, bool>> filter, string? includeProperties = null);
+		T GetFirstorDefault(Expression<Func<T, bool>> filter, string? includeProperties = null);
 		IEnumerable<T> GetAll(string? includeProperties = null);
 		void Add(T entity);
 		void Remove(T entity);

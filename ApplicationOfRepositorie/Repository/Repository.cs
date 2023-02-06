@@ -1,6 +1,7 @@
 ﻿using ApplicationOfRepositorie.Models;
 using ApplicationOfRepositorie.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ApplicationOfRepositorie.Repository
 {
@@ -12,7 +13,7 @@ namespace ApplicationOfRepositorie.Repository
 		public Repository(ApplicationDbContext db)
 		{
 			_db= db;
-			_db.demo_products.Include(i => i.Category).Include(u => u.CoverType);
+			//_db.demo_products.Include(i => i.Category).Include(u => u.CoverType);
 			this.dbSet = _db.Set<T>();
 		}
 		public void Add(T entity)
@@ -33,10 +34,11 @@ namespace ApplicationOfRepositorie.Repository
 			return query.ToList();
 		}
 
-		public T GetFirstofDefault(System.Linq.Expressions.Expression<Func<T, bool>> filter, string? includeProperties = null)
+		public T GetFirstorDefault(Expression<Func<T, bool>> filter, string? includeProperties = null)
 		{
 			IQueryable<T> query = dbSet;
-			query = query.Where(filter);
+            query = query.Where(filter);
+
             if (includeProperties != null)
             {
                 foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -44,6 +46,7 @@ namespace ApplicationOfRepositorie.Repository
                     query = query.Include(property);
                 }
             }
+
             return query.FirstOrDefault();
 		}
 

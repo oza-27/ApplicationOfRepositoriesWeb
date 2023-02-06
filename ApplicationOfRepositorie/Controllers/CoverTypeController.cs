@@ -37,7 +37,7 @@ namespace ApplicationOfRepositorie.Controllers
 		// Get For Edit
 		public IActionResult Edit(int? id)
 		{
-			var obj = _unitOfWork.CoverType.GetFirstofDefault(u=>u.Id==id);
+			var obj = _unitOfWork.CoverType.GetFirstorDefault(u=>u.Id==id);
 			if (obj == null)
 			{
 				return NotFound();
@@ -58,7 +58,7 @@ namespace ApplicationOfRepositorie.Controllers
 		// Get for Delete
 		public IActionResult Delete(int? id)
 		{
-			var obj = _unitOfWork.CoverType.GetFirstofDefault(u=>u.Id==id);
+			var obj = _unitOfWork.CoverType.GetFirstorDefault(u=>u.Id==id);
 			if (obj == null)
 			{
 				return NotFound();
