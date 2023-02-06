@@ -1,0 +1,63 @@
+﻿@model Company
+@{
+    ViewData["Title"] = "Upsert";
+}
+
+<div class="container">
+    <div>
+        <form method="post" asp-action="Upsert" style="background-image:linear-gradient(lightblue,lightgreen)" enctype="multipart/form-data">
+            <div class="border p-3 mt-4 row">
+                <input asp-for="CompanyId" hidden />
+                <div class="col-12 pb-2">
+                    <h2 class="text-primary text-dark"> @(Model.CompanyId!=0?"Update":"Create") Company </h2>
+                    <hr />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Name"> Name </label>
+                    <input asp-for="Name" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber"> Phone Number </label>
+                    <input asp-for="PhoneNumber" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StreetAddress"> Address </label>
+                    <input asp-for="StreetAddress" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="City"> City </label>
+                    <input asp-for="City" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="State"> State </label>
+                    <input asp-for="State" class="form-control" />
+                </div>
+                
+                <div>
+                    @if (Model.CompanyId == 0)
+                    {
+                         <button type="submit" class="btn btn-outline-info" style="width:150px"> Create </button>
+
+                    }
+                    else
+                    {
+                         <button type="submit" class="btn btn-outline-dark" style="width:150px"> Update </button>
+                    }
+                    <a class="btn btn-outline-info text-dark" asp-controller="Company" asp-action="Index" style="width:150px">
+                        Back to List
+                    </a>
+                </div> 
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    } 
+}
