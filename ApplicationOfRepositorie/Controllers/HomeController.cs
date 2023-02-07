@@ -38,15 +38,25 @@ namespace ApplicationOfRepositorie.Controllers
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		[Authorize] // Only authorize user can access this page
-        public IActionResult Details(ShoppingCart spCart)
+        public IActionResult Details(ShoppingCart shoppingCart)
         {
 			var claimsIdentity = (ClaimsIdentity)User.Identity;
 			var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-			spCart.ApplicationUserId = claims.Value;
+            shoppingCart.ApplicationUserId = claims.Value;
 			
-			_unitOfWork.ShoppingCart.Add(spCart);
+			ShoppingCart cartFromDb = _unitOfWork.ShoppingCart.GetFirstorDefault(
+				x=>x.ApplicationUserId == claims.Value && x.ProductId == shoppingCart.ProductId);
+			if(cartFromDb == null)
+			{
+				_unitOfWork.ShoppingCart.Add(cartFromDb);
+			}
+			else
+			{
+				// it will increment the count because user already addded some counts at past
+				_unitOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
+			}
 			_unitOfWork.Save();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         public IActionResult Privacy()

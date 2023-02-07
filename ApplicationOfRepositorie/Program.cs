@@ -14,12 +14,18 @@ var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
-builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseMySql(
-	connection, ServerVersion.AutoDetect(connection)
-	));
+builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultTokenProviders().AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
+// Configuration because user cannot access the page without Logging In
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.LoginPath = $"/Identity/Account/Login";
+	options.LogoutPath = $"/Identity/Account/Logout";
+	options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
+
 
 var app = builder.Build();
 
