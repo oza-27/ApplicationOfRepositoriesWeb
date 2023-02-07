@@ -1,7 +1,9 @@
 ﻿using ApplicationOfRepositorie.Models;
 using ApplicationOfRepositorie.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace ApplicationOfRepositorie.Controllers
 {
@@ -22,17 +24,32 @@ namespace ApplicationOfRepositorie.Controllers
 			return View(productList);
 		}
 
-		public IActionResult Details(int id)
+		public IActionResult Details(int productId)
 		{
 			ShoppingCart shopCart = new()
 			{
 				Count = 1,
-				Product = _unitOfWork.Product.GetFirstorDefault(i => i.Id == id, includeProperties: "Category,CoverType")
+				ProductId = productId,
+				Product = _unitOfWork.Product.GetFirstorDefault(i => i.Id == productId, includeProperties: "Category,CoverType")
 			};
 			return View(shopCart);
 		}
+		
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize] // Only authorize user can access this page
+        public IActionResult Details(ShoppingCart spCart)
+        {
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+			spCart.ApplicationUserId = claims.Value;
+			
+			_unitOfWork.ShoppingCart.Add(spCart);
+			_unitOfWork.Save();
+            return RedirectToAction(nameof(Index));
+        }
 
-		public IActionResult Privacy()
+        public IActionResult Privacy()
 		{
 			return View();
 		}

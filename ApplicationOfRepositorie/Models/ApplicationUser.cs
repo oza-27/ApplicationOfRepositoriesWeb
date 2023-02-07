@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationOfRepositorie.Models
 {
@@ -11,5 +13,9 @@ namespace ApplicationOfRepositorie.Models
         public string? City { get; set; }
         public string? State { get; set; }
         public string?  PostalCode { get; set; }
+        public int? CompaanyId { get; set; }
+        [ForeignKey("CompaanyId")]
+        [ValidateNever]
+        public Company Company { get; set; }
     }
 }
