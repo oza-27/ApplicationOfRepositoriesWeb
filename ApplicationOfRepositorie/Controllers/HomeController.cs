@@ -48,15 +48,18 @@ namespace ApplicationOfRepositorie.Controllers
 				x=>x.ApplicationUserId == claims.Value && x.ProductId == shoppingCart.ProductId);
 			if(cartFromDb == null)
 			{
-				_unitOfWork.ShoppingCart.Add(cartFromDb);
+				_unitOfWork.ShoppingCart.Add(shoppingCart);
+				_unitOfWork.Save();
+
 			}
 			else
 			{
 				// it will increment the count because user already addded some counts at past
 				_unitOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
+				_unitOfWork.Save();
+
 			}
-			_unitOfWork.Save();
-            return RedirectToAction("Index");
+			return RedirectToAction("Index");
         }
 
         public IActionResult Privacy()

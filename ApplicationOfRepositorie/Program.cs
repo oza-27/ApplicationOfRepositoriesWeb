@@ -5,6 +5,8 @@ using ApplicationOfRepositorie.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -15,6 +17,7 @@ var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+builder.Services.Configure<StripeSetings>(builder.Configuration.GetSection("StripSetting"));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultTokenProviders().AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
@@ -41,6 +44,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Globally implementing API key to run payments
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("StripSetting:SecretKey").Get<string>();
+
 app.UseAuthentication();;
 
 app.UseAuthorization();

@@ -16,5 +16,7 @@ namespace ApplicationOfRepositorie.Models
 		public DbSet<ApplicationUser> application_users { get; set; }
 		public DbSet<Company> companies { get; set; }
 		public DbSet<ShoppingCart> shoppingCarts { get; set; }
+		public DbSet<OrderHeader> orderHeaders { get; set; }
+		public DbSet<OrderDetail> orderDetail { get; set; }
 	}
 }

@@ -164,7 +164,8 @@ namespace ApplicationOfRepositorie.Areas.Identity.Pages.Account
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 user.StreetAddress = Input.StreetAddress;
                 user.City = Input.City;
-                user.PostalCode = Input.PostalCode;
+				user.State = Input.State;
+				user.PostalCode = Input.PostalCode;
                 user.Name = Input.Name;
                 user.PhoneNumber = Input.PhoneNumber;
                 if(Input.Role == SD.Role_user_Comp)
