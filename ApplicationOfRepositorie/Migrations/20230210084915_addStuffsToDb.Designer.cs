@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApplicationOfRepositorie.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230208065850_addOrderDetailandHeaderToDb")]
-    partial class addOrderDetailandHeaderToDb
+    [Migration("20230210084915_addStuffsToDb")]
+    partial class addStuffsToDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
