@@ -32,6 +32,7 @@ namespace ApplicationOfRepositorie.Repository
 		public void UpdateStripePaymentId(int id, string sessionId, string paymentIntentId)
 		{
 			var orderFromDb = _db.orderHeaders.FirstOrDefault(u => u.Id == id);
+
 			orderFromDb.SessionId = sessionId;
 			orderFromDb.PaymentIntendId = paymentIntentId;
 		}

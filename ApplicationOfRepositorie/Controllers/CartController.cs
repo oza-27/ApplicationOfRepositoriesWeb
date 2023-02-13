@@ -100,6 +100,7 @@ namespace ApplicationOfRepositorie.Controllers
             }
             return View(ShoppingCartVM);
         }
+       
         [HttpPost, ActionName("Summary")]
         [ValidateAntiForgeryToken]
         public IActionResult SummaryPOST()
@@ -111,8 +112,7 @@ namespace ApplicationOfRepositorie.Controllers
                 u => u.ApplicationUserId == claim.Value,
                 includeProperties: "Product");
 
-            ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-            ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+            
             ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
             ShoppingCartVM.OrderHeader.ApplicationUserId = claim.Value;
 
@@ -121,8 +121,20 @@ namespace ApplicationOfRepositorie.Controllers
                 cart.Price = GetPriceBaseOnQuantity(cart.Count, cart.Product.Price, cart.Product.Price50, cart.Product.Price100);
                 ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
             }
+			// retriving the values from applicationUser
+			ApplicationUser application = _unitOfWork.ApplicationUser.GetFirstorDefault(u => u.Id == claim.Value);
 
-            _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
+			if (application.CompaanyId.GetValueOrDefault() == 0)
+			{
+				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+			}
+            else
+            {
+                ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment; ;
+				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+			}
+			_unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
             foreach (var cart in ShoppingCartVM.listCarts)
             {
@@ -137,64 +149,82 @@ namespace ApplicationOfRepositorie.Controllers
                 _unitOfWork.Save();
             }
 
+
+
             // stripe settings
-            var domain = "https://localhost:44382/";
-            var options = new SessionCreateOptions
+            if (application.CompaanyId.GetValueOrDefault() == 0)
             {
-                // lineitems list of products we have in our cart
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                SuccessUrl = domain+$"cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
-                CancelUrl = domain+$"Cart/Index",
-            };
-
-            foreach (var item in ShoppingCartVM.listCarts)
-            {
-
-                var sessionLineItem = new SessionLineItemOptions
+                var domain = "https://localhost:44382/";
+                var options = new SessionCreateOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(item.Price * 100), // 20.00 -> 2000
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title,
-                        },
-                    },
-                    Quantity = item.Count,
+                    // lineitems list of products we have in our cart
+                    LineItems = new List<SessionLineItemOptions>(),
+                    Mode = "payment",
+                    SuccessUrl = domain + $"cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+                    CancelUrl = domain + $"Cart/Index",
                 };
-                options.LineItems.Add(sessionLineItem);
+
+                foreach (var item in ShoppingCartVM.listCarts)
+                {
+
+                    var sessionLineItem = new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(item.Price * 100), // 20.00 -> 2000
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Title,
+                            },
+                        },
+                        Quantity = item.Count,
+                    };
+                    options.LineItems.Add(sessionLineItem);
+                }
+
+                var service = new SessionService();
+                Session session = service.Create(options);
+                _unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.Save();
+                //ShoppingCartVM.OrderHeader.SessionId = session.Id;
+                //ShoppingCartVM.OrderHeader.PaymentIntendId = session.PaymentIntentId;
+                Response.Headers.Add("Location", session.Url);
+                return new StatusCodeResult(303);
             }
-
-            var service = new SessionService();
-            Session session = service.Create(options);
-            _unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
-            ShoppingCartVM.OrderHeader.SessionId = session.Id;
-            ShoppingCartVM.OrderHeader.PaymentIntendId = session.PaymentIntentId;
-            Response.Headers.Add("Location", session.Url);
-            return new StatusCodeResult(303);
-
-   //         _unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.listCarts);
-   //         _unitOfWork.Save();
-			//return RedirectToAction("Index","Home");
+            else
+            {
+                return RedirectToAction("OrderConfirmation","Cart", new
+                {
+                    id = ShoppingCartVM.OrderHeader.Id
+                });
+            }
 		}
 
-        public IActionResult OrderConfirmation(int id)
+		// for retrieving the order and stripe success.
+		public IActionResult OrderConfirmation(int id)
         {
             OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstorDefault(i => i.Id == id);
-			var service = new SessionService();
-			Session session = service.Get(orderHeader.SessionId);
-			
-            // check stripe status
-            if(session.PaymentStatus.ToLower() == "paid")
+            if(orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
-                _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
-                _unitOfWork.Save();
-            }
-			_unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.listCarts);
+				var service = new SessionService();
+				Session session = service.Get(orderHeader.SessionId);
+
+				// check stripe status
+				if (session.PaymentStatus.ToLower() == "paid")
+				{
+					_unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+					_unitOfWork.Save();
+				}
+			}
+            // for retreving shopping cart using list. get that by userId of application.
+            List<ShoppingCart> shoppingCarts= _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId ==
+            orderHeader.ApplicationUserId).ToList();
+
+			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
 			_unitOfWork.Save();
-			return RedirectToAction("Index","Home");
+			
+            return View(id);
 		}
 
 		// creating a function because it will return the price total according to the quantity of particular book.
